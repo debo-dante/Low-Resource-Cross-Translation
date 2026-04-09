@@ -19,7 +19,7 @@ try:
     model = PeftModel.from_pretrained(model, adapter_path)
     model.eval()
 except Exception as e:
-    print(f"\n❌ Error loading adapters from {adapter_path}")
+    print(f"\n Error loading adapters from {adapter_path}")
     print("Ensure you extracted your trained adapter files into the 'models/nllb-assamese-kannada-lora' folder.")
     exit()
 
@@ -28,7 +28,7 @@ tokenizer.src_lang = "asm_Beng"
 forced_bos_token_id = tokenizer.convert_tokens_to_ids("kan_Knda")
 
 print("\n" + "="*60)
-print("🚀 Assamese-Kannada Neural Translator Ready!")
+print("Assamese-Kannada Neural Translator Ready!")
 print("Type your Assamese sentence below and press Enter.")
 print("Type 'quit' or 'exit' to close the program.")
 print("="*60 + "\n")
