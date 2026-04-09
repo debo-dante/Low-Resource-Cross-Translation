@@ -16,6 +16,20 @@ This repository solves this architectural flaw by applying **Low-Rank Adaptation
 
 ---
 
+## 🎥 Training in Action (Live Demonstration)
+To prove the efficacy and hardware efficiency of this architecture, the entire 600-step training phase was executed on a consumer-grade **NVIDIA GeForce RTX 3060 Laptop GPU**. 
+
+By utilizing LoRA, we reduced the trainable parameters to just 0.58%, preventing VRAM bottlenecking and allowing the model to train efficiently locally.
+
+
+https://github.com/user-attachments/assets/bc028e2c-44ea-4024-a128-244db4f7dc72
+
+
+
+*(The video demonstrates real-time terminal output, gradient updates, and stable VRAM allocation during the fine-tuning phase).*
+
+---
+
 ## 🛑 The Baseline Failure: The "IndicBART Autopsy"
 Before adopting NLLB, an 8-hour full fine-tuning run was executed on a standard shared-script sequence-to-sequence model (IndicBART) using 80,000 parallel rows. 
 
