@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M.Tech Thesis: Assamese-Kannada NMT</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <style>
+        /* Material Design CSS Variables */
+        :root {
+            --md-primary: #3f51b5; /* Indigo */
+            --md-primary-dark: #303f9f;
+            --md-accent: #009688; /* Teal */
+            --md-bg: #f5f5f6;
+            --md-surface: #ffffff;
+            --md-text: rgba(0, 0, 0, 0.87);
+            --md-text-secondary: rgba(0, 0, 0, 0.60);
+            --md-divider: rgba(0, 0, 0, 0.12);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--md-bg);
+            color: var(--md-text);
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Material Navigation Drawer (Sidebar) */
+        .drawer {
+            width: 300px;
+            background-color: var(--md-surface);
+            box-shadow: 2px 0 8px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            z-index: 4;
+        }
+
+        .drawer-header {
+            background-color: var(--md-primary);
+            color: white;
+            padding: 30px 24px 20px 24px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .drawer-header h2 {
+            margin: 0;
+            font-weight: 500;
+            font-size: 20px;
+            letter-spacing: 0.15px;
+        }
+
+        .drawer-header p {
+            margin: 8px 0 0 0;
+            font-weight: 300;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .nav-list {
+            padding: 8px 0;
+            margin: 0;
+            list-style: none;
+            overflow-y: auto;
+        }
+
+        .nav-item {
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            color: var(--md-text-secondary);
+            font-weight: 500;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .nav-item i {
+            margin-right: 32px;
+            color: var(--md-text-secondary);
+        }
+
+        .nav-item:hover {
+            background-color: rgba(0, 0, 0, 0.04);
+        }
+
+        .nav-item.active {
+            background-color: rgba(63, 81, 181, 0.12);
+            color: var(--md-primary);
+        }
+
+        .nav-item.active i {
+            color: var(--md-primary);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .section {
+            display: none;
+            max-width: 900px;
+            margin: 0 auto;
+            animation: fadeUp 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Material Cards */
+        .card {
+            background: var(--md-surface);
+            border-radius: 8px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 3px 1px -2px rgba(0,0,0,0.2), 
+                        0 2px 2px 0 rgba(0,0,0,0.14), 
+                        0 1px 5px 0 rgba(0,0,0,0.12);
+        }
+
+        /* Typography */
+        h1 {
+            font-weight: 300;
+            font-size: 34px;
+            letter-spacing: -0.25px;
+            margin-top: 0;
+            color: var(--md-text);
+        }
+
+        h3 {
+            font-weight: 400;
+            font-size: 20px;
+            color: var(--md-primary);
+            margin-top: 0;
+            border-bottom: 1px solid var(--md-divider);
+            padding-bottom: 8px;
+        }
+
+        p {
+            font-size: 16px;
+            line-height: 1.6;
+            color: var(--md-text-secondary);
+            text-align: justify;
+        }
+
+        .quote-box {
+            border-left: 4px solid var(--md-accent);
+            background-color: #e0f2f1; /* Light Teal */
+            padding: 16px;
+            border-radius: 0 4px 4px 0;
+            margin: 24px 0;
+        }
+
+        .quote-box p {
+            margin: 0;
+            color: #00695c;
+            font-weight: 500;
+        }
+
+        /* Forms and Buttons */
+        .md-input {
+            width: 100%;
+            border: 1px solid var(--md-divider);
+            border-radius: 4px;
+            padding: 16px;
+            font-size: 16px;
+            font-family: 'Roboto', sans-serif;
+            box-sizing: border-box;
+            margin-bottom: 24px;
+            transition: border-color 0.2s;
+            resize: vertical;
+        }
+
+        .md-input:focus {
+            outline: none;
+            border-color: var(--md-primary);
+            border-width: 2px;
+            padding: 15px; /* Offset border width */
+        }
+
+        .btn-raised {
+            background-color: var(--md-primary);
+            color: white;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 4px;
+            font-family: 'Roboto', sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            letter-spacing: 1.25px;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 3px 1px -2px rgba(0,0,0,0.2), 0 2px 2px 0 rgba(0,0,0,0.14), 0 1px 5px 0 rgba(0,0,0,0.12);
+            transition: background-color 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-raised i {
+            margin-right: 8px;
+            font-size: 18px;
+        }
+
+        .btn-raised:hover {
+            background-color: var(--md-primary-dark);
+            box-shadow: 0 2px 4px -1px rgba(0,0,0,0.2), 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12);
+        }
+
+        #outputBox {
+            background-color: #f5f5f5;
+            padding: 24px;
+            border-radius: 4px;
+            border-left: 4px solid var(--md-primary);
+            min-height: 80px;
+            font-size: 18px;
+            color: var(--md-text);
+        }
+        
+        .status-text {
+            font-size: 12px;
+            color: var(--md-text-secondary);
+            margin-top: 8px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="drawer">
+        <div class="drawer-header">
+            <h2>Assamese-Kannada NMT</h2>
+            <p>M.Tech Thesis Defense</p>
+        </div>
+        <ul class="nav-list">
+            <li class="nav-item active" onclick="showSection('intro', this)">
+                <i class="material-icons">menu_book</i> Introduction
+            </li>
+            <li class="nav-item" onclick="showSection('algo', this)">
+                <i class="material-icons">account_tree</i> Methodology
+            </li>
+            <li class="nav-item" onclick="showSection('impl', this)">
+                <i class="material-icons">memory</i> Experimental Setup
+            </li>
+            <li class="nav-item" onclick="showSection('results', this)">
+                <i class="material-icons">analytics</i> Results
+            </li>
+            <li class="nav-item" onclick="showSection('future', this)">
+                <i class="material-icons">update</i> Future Work
+            </li>
+            <li class="nav-item" onclick="showSection('live', this)" style="border-top: 1px solid #e0e0e0; margin-top: 8px; padding-top: 16px;">
+                <i class="material-icons" style="color: #ff9800;">g_translate</i> Live API Demo
+            </li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        
+        <div id="intro" class="section active">
+            <h1>I. Introduction</h1>
+            <div class="card">
+                <h3>Background</h3>
+                <p>India is a multi-lingual country having 22 officially recognized languages that fall in four distinct language families. The Assamese (Indo-Aryan language that is mostly spoken in the Northeast) and Kannada (Dravidian language that is spoken in the South) are two major regional linguistic pillars. Although the Indian subcontinent is rapidly becoming digitalized, there is a dire lack of computational resources to assist in translating these two languages to each other.</p>
+                <p>Traditionally, cross-family translation in India has been based on pivot-language architectures, which translate via Hindi or English. This indirect mapping cannot but introduce the repetitive semantic and morphological degradation, which usually distorts the pragmatic meaning of the source text.</p>
+            </div>
+            
+            <div class="card">
+                <h3>The "Devanagari Trap"</h3>
+                <p>A critical bottleneck of the early multilingual Indian NLP models is the vectorization strategy or the Devanagari Trap or Morphological Erasure. We recognize the excessive use of transliteration as the Devanagari Trap.</p>
+                <div class="quote-box">
+                    <p>"A shared-script tokenizer that meets Assamese and Kannada at a Hindi phonetic pivot literally disintegrates indigenous morphological boundaries."</p>
+                </div>
+                <p>The minute phonetic variations determining the grammatical cases in the Dravidian languages are lost as they are mapped to the smaller Indo-Aryan phonetic space. As a result, the grammatical rules of suffixes are blinded by the neural network, and highly structured words are interpreted as phonetic fuzziness.</p>
+            </div>
+        </div>
+
+        <div id="algo" class="section">
+            <h1>IV. Methodology and Architecture</h1>
+            <div class="card">
+                <h3>A. Separate Script Tokenization</h3>
+                <p>To overcome the Devanagari Trap, our proposed methodology uses the No Language Left Behind (NLLB-200) distilled 600M parameter model. The NLLB architecture uses a very large (256,000) vocabulary size, 256,000 tokens, and a large (massive) Byte-Pair Encoding (BPE) tokenizer.</p>
+                <p>This imposes a Separate Script (SS) architecture, and natively supports the Bengali-Assamese (asm_Beng) and Kannada (kan_Knda) scripts. The model achieves this by directly projecting these independent subword tokens into a dense, cross-lingual embedding space, without the phonetic conveyor, and thus the structural linguistic integrity needed to support accurate self-attention.</p>
+            </div>
+
+            <div class="card">
+                <h3>B. Mathematical Formulation of Low-Rank Adaptation</h3>
+                <p>Standard fine-tuning is applied to the entire pre-trained weight matrix, resulting in an enormous gradient footprint. LoRA constrains the weight update by representing it with a low-rank decomposition:</p>
+                <div class="quote-box">
+                    <p>h = W₀x + ΔWx = W₀x + (α/r)(BAx)</p>
+                </div>
+                <p>During our fine-tuning process, W₀ is frozen (i.e., requires_grad = False), and only A and B receive gradient updates. We targeted the query (Wq) and value (Wv) projection matrices within the multi-head self-attention sublayers.</p>
+            </div>
+        </div>
+
+        <div id="impl" class="section">
+            <h1>V. Experimental Setup</h1>
+            <div class="card">
+                <h3>Data Corpus & Hardware</h3>
+                <p>An 80,000 Assamese-Kannada sentence pairs parallel corpus was curated. The data was thoroughly cleaned to eliminate excessive length mismatches and invalid Unicode characters.</p>
+                <p>The training was run in a consumer-grade level of the GPU environment to illustrate the feasibility of PEFT.</p>
+            </div>
+
+            <div class="card">
+                <h3>Baseline: IndicBART and Decoding Collapse</h3>
+                <p>In order to have a comparative baseline, we fully fine-tuned IndicBART sequence-to-sequence model on the same 80k corpus. Since the IndicBART uses the above-mentioned shared-script Devanagari tokenizer, the native morphological markers were lost prior to feeding into the encoder.</p>
+                <p>The training loss decreased linearly during the 8-hour full fine-tuning phase where the plateauing was around a supposedly optimal 2.60. Inference testing however showed decoding collapse. The autoregressive decoder... produced the 2.60 loss by repeatedly producing endless repeating loops of highfrequency Kannada syllables (e.g., "na-na-na") instead of valid translations.</p>
+            </div>
+        </div>
+
+        <div id="results" class="section">
+            <h1>VI. Results and Evaluation</h1>
+            <div class="card">
+                <h3>Training Convergence Dynamics</h3>
+                <p>In contrast to the baseline, the LoRA architecture was in a more healthy, non-collapsing loss equilibrium. The number of parameter that was trainable was brought down to 3.4 Million (0.58%), a 600 Million cut.</p>
+                <p>The model stabilized to a micro-adjustment plateau, which ended up with a strong loss of 10.86, without mode collapse.</p>
+            </div>
+
+            <div class="card">
+                <h3>Overall Performance</h3>
+                <p>We designed a 100-sentence Gold Standard test providing five complex linguistic categories to test particular morphological bridges.</p>
+                <div class="quote-box">
+                    <p>"With an overall BLEU State-of-the-Art score of 32.92 and a chrF++ score of 60.80 on a linguistically rigorous dataset, this work sets up a very sustainable, compute-efficient pipeline to develop regional NLP in India."</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="future" class="section">
+            <h1>VIII. Future Work</h1>
+            <div class="card">
+                <h3>Data Augmentation</h3>
+                <p>Although the existing architecture is very good in pronoun congruence and simple aggluative mapping, more is needed to bring up its performance with complex, multi-clause conditionals. Further research will involve incorporation of Back-Translation to synthetically expand the parallel corpus with the help of monolingual Kannada data.</p>
+            </div>
+            
+            <div class="card">
+                <h3>Retrieval-Augmented Generation (RAG)</h3>
+                <p>Lastly, by applying this parameter-efficient architecture to a larger Retrieval-Augmented Generation (RAG) system, culturally sensitive, cross-lingual conversational agents may be applied to marginalized language groups.</p>
+            </div>
+        </div>
+
+        <div id="live" class="section">
+            <h1>Live Working Translation</h1>
+            <p style="margin-bottom: 24px;">This interactive interface securely communicates with the local FastAPI backend, executing translation via the fine-tuned LoRA adapters dynamically loaded in CPU RAM.</p>
+            
+            <div class="card">
+                <h3>Assamese Source Text</h3>
+                <textarea id="inputText" class="md-input" rows="4" placeholder="আজি বৰষুণ দিব পাৰে।"></textarea>
+                
+                <button class="btn-raised" onclick="performTranslation()">
+                    <i class="material-icons">autorenew</i>
+                    Translate to Kannada
+                </button>
+                <span class="status-text" id="statusText">System initialized. Waiting for prompt...</span>
+
+                <h3 style="margin-top: 32px;">Target Output (Kannada)</h3>
+                <div id="outputBox"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Smooth Section Switching
+        function showSection(sectionId, element) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+            // Remove active style from all sidebar items
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            
+            // Show targeted section
+            document.getElementById(sectionId).classList.add('active');
+            // Add active state to clicked sidebar item
+            element.classList.add('active');
+        }
+
+        // Translation API Logic
+        async function performTranslation() {
+            const text = document.getElementById('inputText').value;
+            const outputBox = document.getElementById('outputBox');
+            const statusText = document.getElementById('statusText');
+            
+            if (!text.trim()) {
+                alert("Please enter Assamese text.");
+                return;
+            }
+
+            outputBox.innerText = "";
+            statusText.innerText = "Processing tensor matrices via local API...";
+            statusText.style.color = "#f57c00"; // Material Orange
+
+            try {
+                // Ensure local FastAPI server is running (uvicorn api:app)
+                const response = await fetch('http://127.0.0.1:8000/translate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: text })
+                });
+
+                if (!response.ok) throw new Error("API Response Failed");
+
+                const data = await response.json();
+                outputBox.innerText = data.translation;
+                statusText.innerText = "Translation completed successfully via local inference.";
+                statusText.style.color = "#388e3c"; // Material Green
+
+            } catch (error) {
+                outputBox.innerHTML = "<span style='color: #d32f2f;'><i class='material-icons' style='vertical-align: middle;'>error_outline</i> Backend Connection Failed.</span>";
+                statusText.innerText = "Critical Error: Ensure your Python FastAPI backend is running (uvicorn api:app).";
+                statusText.style.color = "#d32f2f"; // Material Red
+                console.error(error);
+            }
+        }
+    </script>
+</body>
+</html>
